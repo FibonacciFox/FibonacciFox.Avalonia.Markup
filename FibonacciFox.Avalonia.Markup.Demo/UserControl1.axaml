@@ -7,18 +7,13 @@
              Foreground="Gold"
              Classes="H1 H2 Test"
              x:Class="FibonacciFox.Avalonia.Markup.Demo.UserControl1">
-    <Expander VerticalAlignment="Top">
-        <Expander.Header>
-            Hidden Search
-        </Expander.Header>
-        <Grid RowDefinitions="*,*" ColumnDefinitions="150,*">
-            <TextBlock Grid.Row="0" Grid.Column="0"
-                       VerticalAlignment="Center">Search</TextBlock>
-            <TextBox Grid.Row="0" Grid.Column="1"
-                     Watermark="Search text" Width="200" />
-            <TextBlock Grid.Row="1" Grid.Column="0"
-                       VerticalAlignment="Center">Case sensitive?</TextBlock>
-            <CheckBox Grid.Row="1" Grid.Column="1" />
-        </Grid>
-    </Expander>
+    <Rectangle Fill="Aqua" Height="200" Width="400"
+               ToolTip.Placement="Bottom">
+        <ToolTip.Tip>
+            <StackPanel>
+                <TextBlock FontSize="16">Rectangle</TextBlock>
+                <TextBlock>Some explanation here.</TextBlock>
+            </StackPanel>
+        </ToolTip.Tip>
+    </Rectangle>
 </UserControl>

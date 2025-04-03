@@ -56,12 +56,7 @@ public class HeaderedControlElementTests
         Assert.NotNull(headered.Content);
         Assert.Equal("TextBlock", headered.Content?.ElementType);
     }
-
-    class TestUserControl : UserControl
-    {
-        
-    }
-
+    
     [Fact]
     public void Expander_Axaml_Should_Include_Header_And_Content()
     {
