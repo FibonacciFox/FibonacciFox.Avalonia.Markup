@@ -1,0 +1,96 @@
+########################################
+# .NET build output
+########################################
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+########################################
+# Avalonia-specific (Designer artifacts)
+########################################
+*.axaml.g.cs
+*.g.cs
+
+########################################
+# Rider / JetBrains
+########################################
+.idea/
+*.sln.iml
+
+########################################
+# Visual Studio
+########################################
+.vs/
+*.dbmdl
+*.psess
+*.vsp
+*.vspscc
+*.vssscc
+*.cache
+*.pidb
+
+########################################
+# Visual Studio Code
+########################################
+.vscode/
+.history/
+
+########################################
+# Test & Coverage
+########################################
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.trx
+
+########################################
+# Logs & dumps
+########################################
+*.log
+*.tlog
+*.svclog
+*.dump
+*.dmp
+
+########################################
+# Misc
+########################################
+_ReSharper*/
+*.orig
+*.rej
+*.bak
+*.tmp
+*.tmp.*
+*.swp
+.DS_Store
+Thumbs.db
+
+########################################
+# NuGet
+########################################
+*.nupkg
+*.snupkg
+*.nuspec
+.nuget/
+
+# Global packages & tools
+packages/
+*.lock.json
+.project.assets.json
+
+########################################
+# Rider: unit test caching
+########################################
+.idea/.idea.ReSharperPlatformVs*
+.idea/.idea.ReSharperTests*
+
+########################################
+# Optional
+########################################
+# Uncomment if you have local secrets/configs
+# appsettings.Local.json
+# appsettings.Development.json

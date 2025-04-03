@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FibonacciFox.Avalonia.Markup", "FibonacciFox.Avalonia.Markup\FibonacciFox.Avalonia.Markup.csproj", "{3C93E0D2-D151-4A3A-B299-039174A42CA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FibonacciFox.Avalonia.Markup.Tests", "FibonacciFox.Avalonia.Markup.Tests\FibonacciFox.Avalonia.Markup.Tests.csproj", "{3F990BC6-79C4-4B32-A181-B18F103E9C89}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FibonacciFox.Avalonia.Markup.Demo", "FibonacciFox.Avalonia.Markup.Demo\FibonacciFox.Avalonia.Markup.Demo.csproj", "{BC240736-AA8D-48D4-8712-21CBED160498}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Debug|x64.Build.0 = Debug|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Debug|x86.Build.0 = Debug|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Release|x64.ActiveCfg = Release|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Release|x64.Build.0 = Release|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Release|x86.ActiveCfg = Release|Any CPU
+		{3C93E0D2-D151-4A3A-B299-039174A42CA4}.Release|x86.Build.0 = Release|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Debug|x64.Build.0 = Debug|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Debug|x86.Build.0 = Debug|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Release|x64.ActiveCfg = Release|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Release|x64.Build.0 = Release|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Release|x86.ActiveCfg = Release|Any CPU
+		{3F990BC6-79C4-4B32-A181-B18F103E9C89}.Release|x86.Build.0 = Release|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Debug|x64.Build.0 = Debug|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Debug|x86.Build.0 = Debug|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Release|x64.ActiveCfg = Release|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Release|x64.Build.0 = Release|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Release|x86.ActiveCfg = Release|Any CPU
+		{BC240736-AA8D-48D4-8712-21CBED160498}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
