@@ -11,40 +11,39 @@ namespace FibonacciFox.Avalonia.Markup.Models.Properties;
 public abstract class AvaloniaPropertyModel
 {
     /// <summary>
-    /// Имя свойства (например, <c>"Content"</c>, <c>"Margin"</c>).
+    /// Имя свойства (например, "Content", "Margin", "Grid.Row").
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Строковое представление значения свойства (например, <c>"Red"</c>, <c>"0,10,0,10"</c>).
-    /// Используется для сериализации в XAML.
+    /// Строковое значение свойства, предназначенное для XAML-сериализации.
+    /// Может быть null, если значение невозможно сериализовать.
     /// </summary>
     public string? Value { get; protected set; }
 
     /// <summary>
-    /// Тип значения свойства (Control, Binding, Brush и т.п.).
-    /// Определяется автоматически на основе объекта значения.
+    /// Категория значения (Simple, Control, Binding и т.д.).
     /// </summary>
     public AvaloniaValueKind ValueKind { get; private set; } = AvaloniaValueKind.Unknown;
 
     /// <summary>
-    /// Сериализованное представление, если значение — визуальный элемент или контейнер.
+    /// Сериализуемое дерево, если значение — визуальный или логический элемент.
     /// </summary>
     public VisualElement? SerializedValue { get; private set; }
 
     /// <summary>
-    /// Флаг, указывающий, что свойство является только для времени выполнения (например, <c>ActualWidth</c>).
-    /// Такие свойства не сериализуются.
+    /// Указывает, что свойство является только для времени выполнения и не должно сериализоваться.
     /// </summary>
     public bool IsRuntimeOnly { get; set; }
 
     /// <summary>
-    /// Возвращает <c>true</c>, если значение может быть сериализовано в AXAML.
+    /// Указывает, можно ли сериализовать значение в XAML.
     /// </summary>
     public bool CanBeSerializedToXaml { get; private set; }
 
     /// <summary>
-    /// Возвращает <c>true</c>, если сериализованное значение содержит вложенные элементы управления.
+    /// Возвращает true, если SerializedValue содержит вложенные элементы управления.
+    /// Используется при генерации вложенных тегов в AXAML.
     /// </summary>
     public virtual bool IsContainsControl =>
         SerializedValue is ControlElement el &&
@@ -52,33 +51,29 @@ public abstract class AvaloniaPropertyModel
         el.Children.Count > 0;
 
     /// <summary>
-    /// Устанавливает значение свойства и автоматически вычисляет все метаданные:
-    /// <see cref="Value"/>, <see cref="ValueKind"/>, <see cref="SerializedValue"/>, <see cref="CanBeSerializedToXaml"/>.
+    /// Устанавливает значение свойства и автоматически определяет:
+    /// - строковое представление,
+    /// - категорию значения (ValueKind),
+    /// - возможность сериализации,
+    /// - вложенную структуру (если применимо).
     /// </summary>
-    /// <param name="value">Объект Avalonia-свойства, полученный из контрола.</param>
-    /// <returns>Текущий экземпляр модели (для fluent-стиля вызовов).</returns>
-    public AvaloniaPropertyModel SetRawValue(object value)
+    /// <param name="value">Значение свойства. Может быть null.</param>
+    /// <returns>Текущий экземпляр модели (для fluent-стиля).</returns>
+    public AvaloniaPropertyModel SetRawValue(object? value)
     {
+        if (value == null)
+        {
+            Value = null;
+            ValueKind = AvaloniaValueKind.Unknown;
+            SerializedValue = null;
+            CanBeSerializedToXaml = false;
+            return this;
+        }
+
         Value = PropertySerializationHelper.SerializeValue(value);
         ValueKind = PropertySerializationHelper.ResolveValueKind(value);
         SerializedValue = PropertySerializationHelper.TryBuildSerializedValue(value);
-        CanBeSerializedToXaml = IsXamlCompatible(ValueKind);
+        CanBeSerializedToXaml = PropertySerializationHelper.IsXamlCompatible(ValueKind);
         return this;
-    }
-
-    /// <summary>
-    /// Проверяет, можно ли сериализовать значение указанного типа в XAML.
-    /// </summary>
-    /// <param name="kind">Категория значения.</param>
-    /// <returns><c>true</c>, если значение допустимо для XAML.</returns>
-    private static bool IsXamlCompatible(AvaloniaValueKind kind)
-    {
-        return kind switch
-        {
-            AvaloniaValueKind.Binding => false,
-            AvaloniaValueKind.Template => false,
-            AvaloniaValueKind.Resource => false,
-            _ => true
-        };
     }
 }

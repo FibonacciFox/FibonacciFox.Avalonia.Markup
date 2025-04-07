@@ -7,19 +7,22 @@ using FibonacciFox.Avalonia.Markup.Models.Visual;
 namespace FibonacciFox.Avalonia.Markup.Serialization;
 
 /// <summary>
-/// Сериализует свойства контрола (styled, attached, direct, CLR) в модель <see cref="VisualElement"/>.
-/// Используется при построении сериализуемой структуры XAML.
+/// Сериализует свойства контрола в модели <see cref="AvaloniaPropertyModel"/>:
+/// styled, attached, direct и CLR.
+/// Используется при построении визуального дерева и генерации AXAML.
 /// </summary>
 public static class PropertySerializer
 {
     /// <summary>
     /// Сериализует все поддерживаемые свойства контрола и добавляет их в <see cref="VisualElement"/>.
     /// </summary>
+    /// <param name="control">Экземпляр контрола.</param>
+    /// <param name="element">Целевой элемент дерева, куда добавляются свойства.</param>
     public static void SerializeProperties(Control control, VisualElement element)
     {
         var addedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Styled
+        // 🟡 Styled-свойства
         var styled = AvaloniaPropertyRegistry.Instance.GetRegistered(control.GetType());
         foreach (var prop in styled)
         {
@@ -31,7 +34,7 @@ public static class PropertySerializer
             }
         }
 
-        // Attached
+        // 🟣 Attached-свойства
         var attached = AvaloniaPropertyRegistry.Instance.GetRegisteredAttached(control.GetType());
         foreach (var prop in attached)
         {
@@ -42,7 +45,7 @@ public static class PropertySerializer
             }
         }
 
-        // Direct
+        // 🟢 Direct-свойства
         var direct = AvaloniaPropertyRegistry.Instance.GetRegisteredDirect(control.GetType());
         foreach (var prop in direct)
         {
@@ -54,7 +57,7 @@ public static class PropertySerializer
             }
         }
 
-        // CLR
+        // 🔵 CLR-свойства
         var clr = control.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
         foreach (var prop in clr)
         {
@@ -63,7 +66,9 @@ public static class PropertySerializer
 
             var node = ClrAvaloniaPropertyModel.From(prop, control);
             if (node != null)
+            {
                 element.ClrProperties.Add(node);
+            }
         }
     }
 }

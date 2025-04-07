@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 
 namespace FibonacciFox.Avalonia.Markup.Models.Properties;
 
@@ -16,7 +17,7 @@ public class StyledAvaloniaPropertyModel : AvaloniaPropertyModel
     /// <returns>Модель свойства или <c>null</c>, если не подходит для сериализации.</returns>
     public static StyledAvaloniaPropertyModel? From(AvaloniaProperty property, Control control)
     {
-        // Исключаем Content из ContentControl (будет сериализовано как вложенный элемент)
+        // Исключаем Content и Header, если они Control'ы (будут обработаны как вложенные элементы)
         if ((control is ContentControl && property.Name == "Content") ||
             property.IsReadOnly ||
             !control.IsSet(property))

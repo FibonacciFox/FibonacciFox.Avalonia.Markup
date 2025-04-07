@@ -12,8 +12,8 @@ using FibonacciFox.Avalonia.Markup.Models.Visual;
 namespace FibonacciFox.Avalonia.Markup.Helpers;
 
 /// <summary>
-/// Вспомогательные методы для сериализации свойств Avalonia в XAML-представление.
-/// Включает преобразование значений, определение типа (ValueKind) и логического дерева.
+/// Предоставляет вспомогательные методы для определения типа значения (ValueKind),
+/// сериализации значений в строки и построения вложенной визуальной структуры.
 /// </summary>
 public static class PropertySerializationHelper
 {
@@ -25,13 +25,14 @@ public static class PropertySerializationHelper
     };
 
     /// <summary>
-    /// Определяет, является ли свойство недопустимым для сериализации (только во время выполнения).
+    /// Определяет, является ли CLR-свойство "только во время выполнения".
     /// </summary>
     public static bool IsRuntimeProperty(PropertyInfo prop) =>
         RuntimeOnlyProperties.Contains(prop.Name);
 
     /// <summary>
     /// Определяет, можно ли сериализовать CLR-свойство в XAML.
+    /// Исключает AvaloniaProperty, индексы, readonly и без публичного сеттера.
     /// </summary>
     public static bool IsXamlSerializableClrProperty(PropertyInfo prop, Control control)
     {
@@ -56,8 +57,11 @@ public static class PropertySerializationHelper
     /// <summary>
     /// Сериализует значение свойства в строковое представление для XAML.
     /// </summary>
-    public static string SerializeValue(object value)
+    public static string SerializeValue(object? value)
     {
+        if (value is null)
+            return string.Empty;
+
         return value switch
         {
             string s => s,
@@ -78,7 +82,7 @@ public static class PropertySerializationHelper
     }
 
     /// <summary>
-    /// Упрощённая сериализация привязки.
+    /// Упрощённая сериализация Binding.
     /// </summary>
     private static string SerializeBinding(IBinding binding) =>
         binding switch
@@ -88,42 +92,73 @@ public static class PropertySerializationHelper
         };
 
     /// <summary>
-    /// Определяет тип значения Avalonia (ValueKind), например: Control, Brush, Binding и т.д.
+    /// Определяет категорию значения: Control, Binding, Brush и т.п.
     /// </summary>
-    public static AvaloniaValueKind ResolveValueKind(object value)
+    public static AvaloniaValueKind ResolveValueKind(object? value)
     {
-        return value switch
-        {
-            Control => AvaloniaValueKind.Control,
-            ILogical logical => logical.GetLogicalChildren().Any()
+        if (value is null)
+            return AvaloniaValueKind.Unknown;
+
+        if (value is Control)
+            return AvaloniaValueKind.Control;
+
+        if (value is IBinding)
+            return AvaloniaValueKind.Binding;
+
+        if (value is ITemplate)
+            return AvaloniaValueKind.Template;
+
+        if (value is IResourceProvider)
+            return AvaloniaValueKind.Resource;
+
+        if (value is IBrush)
+            return AvaloniaValueKind.Brush;
+
+        if (value is AvaloniaList<string>)
+            return value is Classes ? AvaloniaValueKind.StyledClasses : AvaloniaValueKind.Complex;
+
+        if (value is ILogical logical)
+            return logical.GetLogicalChildren().Any()
                 ? AvaloniaValueKind.Logical
-                : AvaloniaValueKind.Simple,
-            AvaloniaList<string> when value is Classes => AvaloniaValueKind.StyledClasses,
-            AvaloniaList<string> => AvaloniaValueKind.Complex,
-            IBinding => AvaloniaValueKind.Binding,
-            ITemplate => AvaloniaValueKind.Template,
-            IResourceProvider => AvaloniaValueKind.Resource,
-            IBrush => AvaloniaValueKind.Brush,
-            _ => value.GetType() is { } type &&
-                 (type.IsPrimitive || type.IsEnum || value is string || type.IsValueType)
-                ? AvaloniaValueKind.Simple
-                : AvaloniaValueKind.Unknown
-        };
+                : AvaloniaValueKind.Simple;
+
+        if (value is string || value.GetType().IsPrimitive || value.GetType().IsEnum || value.GetType().IsValueType)
+            return AvaloniaValueKind.Simple;
+
+        if (value is System.Collections.IEnumerable)
+            return AvaloniaValueKind.Complex;
+
+        return AvaloniaValueKind.Unknown;
     }
 
     /// <summary>
-    /// Пытается построить сериализуемую визуальную структуру из значения.
+    /// Пытается построить визуальную модель (VisualElement), если значение — Control или логическое дерево.
+    /// Возвращает null, если не применимо.
     /// </summary>
-    public static VisualElement? TryBuildSerializedValue(object value)
+    public static VisualElement? TryBuildSerializedValue(object? value)
     {
+        if (value is null or string)
+            return null;
+
         return value switch
         {
             Control or ILogical => LogicalTreeBuilder.BuildVisualTreeFromObject(value),
             System.Collections.IEnumerable when value is not AvaloniaList<string>
-                                                    and not Classes
-                                                    and not IPseudoClasses
+                                              and not Classes
+                                              and not IPseudoClasses
                 => LogicalTreeBuilder.BuildVisualTreeFromObject(value),
             _ => null
         };
     }
+
+    /// <summary>
+    /// Определяет, можно ли сериализовать свойство с заданным ValueKind в XAML.
+    /// </summary>
+    public static bool IsXamlCompatible(AvaloniaValueKind kind) => kind switch
+    {
+        AvaloniaValueKind.Binding => false,
+        AvaloniaValueKind.Template => false,
+        AvaloniaValueKind.Resource => false,
+        _ => true
+    };
 }

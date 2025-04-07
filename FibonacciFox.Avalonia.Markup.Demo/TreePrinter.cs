@@ -6,19 +6,23 @@ using FibonacciFox.Avalonia.Markup.Models.Visual.Interfaces;
 namespace FibonacciFox.Avalonia.Markup.Demo;
 
 /// <summary>
-/// Печатает дерево элементов Avalonia в консоль для отладки.
+/// Печатает визуальное дерево Avalonia и свойства каждого элемента в консоль для отладки.
+/// Использует цветовую маркировку по категориям и типам значений.
 /// </summary>
 public static class TreePrinter
 {
     /// <summary>
-    /// Печатает дерево начиная с указанного элемента.
+    /// Печатает визуальное дерево начиная с указанного корневого элемента.
     /// </summary>
+    /// <param name="element">Корневой <see cref="VisualElement"/>.</param>
+    /// <param name="indent">Отступ слева (используется рекурсивно).</param>
+    /// <param name="isLast">Указывает, последний ли элемент в родительском списке.</param>
     public static void PrintVisualTree(VisualElement element, string indent = "", bool isLast = true)
     {
         string prefix = isLast ? "└" : "├";
         string childIndent = indent + (isLast ? "   " : "│  ");
 
-        // 🎨 Цвета по ValueKind
+        // 🎨 Цвет по ValueKind
         ConsoleColor GetKindColor(AvaloniaValueKind kind) => kind switch
         {
             AvaloniaValueKind.Control => ConsoleColor.Cyan,
@@ -32,7 +36,7 @@ public static class TreePrinter
             _ => ConsoleColor.Gray
         };
 
-        // 🔷 Заголовок элемента
+        // 🧩 Заголовок элемента
         Console.ForegroundColor = ConsoleColor.Cyan;
         string name = element is ControlElement ctrl && !string.IsNullOrWhiteSpace(ctrl.Name)
             ? ctrl.DisplayName
@@ -52,7 +56,7 @@ public static class TreePrinter
         Console.ResetColor();
         Console.WriteLine();
 
-        // 📥 Свойства
+        // 🧾 Свойства элемента
         void PrintProperty(AvaloniaPropertyModel prop, string category)
         {
             ConsoleColor catColor = category switch
@@ -95,17 +99,18 @@ public static class TreePrinter
             Console.ResetColor();
             Console.WriteLine();
 
-            // Вложенные сериализованные значения
+            // 🔽 Вложенные значения
             if (prop.SerializedValue is { } inner && prop.ValueKind != AvaloniaValueKind.Simple)
                 PrintVisualTree(inner, childIndent, true);
         }
 
+        // ⚙️ Категории свойств
         foreach (var p in element.StyledProperties) PrintProperty(p, "StyledProperty");
         foreach (var p in element.AttachedProperties) PrintProperty(p, "AttachedProperty");
         foreach (var p in element.DirectProperties) PrintProperty(p, "DirectProperty");
         foreach (var p in element.ClrProperties) PrintProperty(p, "ClrProperty");
 
-        // 👶 Вложенный Content
+        // 📥 Content
         if (element is IContentElement content && content.Content is { } contentValue)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -138,7 +143,7 @@ public static class TreePrinter
             }
         }
 
-        // 👶 Обычные дети
+        // 👶 Обычные дочерние элементы
         for (int i = 0; i < element.Children.Count; i++)
         {
             var child = element.Children[i];

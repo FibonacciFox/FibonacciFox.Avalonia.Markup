@@ -1,4 +1,5 @@
 using System.Text;
+using FibonacciFox.Avalonia.Markup.Helpers;
 using FibonacciFox.Avalonia.Markup.Models.Properties;
 using FibonacciFox.Avalonia.Markup.Models.Visual;
 using FibonacciFox.Avalonia.Markup.Models.Visual.Interfaces;
@@ -6,58 +7,25 @@ using FibonacciFox.Avalonia.Markup.Models.Visual.Interfaces;
 namespace FibonacciFox.Avalonia.Markup;
 
 /// <summary>
-/// Генерирует AXAML-документ на основе дерева VisualElement.
+/// Генерирует AXAML-документ по сериализованному визуальному дереву Avalonia.
+/// Поддерживает свойства, контент, заголовки, элементы коллекций и вложенные теги.
 /// </summary>
 public static class AxamlGenerator
 {
     /// <summary>
-    /// Генерирует AXAML-документ по сериализованному визуальному дереву.
+    /// Генерирует AXAML-документ по корневому элементу.
     /// </summary>
-    /// <param name="root">Корневой элемент (например, UserControl).</param>
-    /// <returns>AXAML как строка.</returns>
+    /// <param name="root">Корневой <see cref="VisualElement"/>, например, UserControl или Button.</param>
+    /// <returns>AXAML-документ в виде строки.</returns>
     public static string GenerateAxaml(VisualElement root)
     {
         var sb = new StringBuilder();
-        var rootTag = root.ElementType ?? "UserControl";
-
-        // 🧩 Атрибуты корневого элемента
-        var rootAttributes = new List<string>
-        {
-            @"xmlns=""https://github.com/avaloniaui""",
-            @"xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""",
-            @"x:Class=""GeneratedNamespace.MyUserControl"""
-        };
-
-        foreach (var prop in root.StyledProperties.Cast<AvaloniaPropertyModel>()
-                     .Concat(root.DirectProperties)
-                     .Concat(root.ClrProperties)
-                     .Concat(root.AttachedProperties.Where(p => !p.IsContainsControl)))
-        {
-            if (!prop.CanBeSerializedToXaml || string.IsNullOrWhiteSpace(prop.Value))
-                continue;
-
-            rootAttributes.Add($"{prop.Name}=\"{EscapeXml(prop.Value)}\"");
-        }
-
-        var rootAttrs = string.Join("\n             ", rootAttributes);
-        sb.AppendLine($"<{rootTag} {rootAttrs}>");
-
-        if (root is IContentElement contentRoot && contentRoot.Content is not null)
-        {
-            GenerateElement(contentRoot.Content, sb, "    ");
-        }
-        else
-        {
-            foreach (var child in GetChildren(root))
-                GenerateElement(child, sb, "    ");
-        }
-
-        sb.AppendLine($"</{rootTag}>");
+        GenerateElement(root, sb, "");
         return sb.ToString();
     }
 
     /// <summary>
-    /// Рекурсивно генерирует AXAML-элемент по VisualElement.
+    /// Рекурсивно генерирует AXAML-представление для указанного элемента.
     /// </summary>
     private static void GenerateElement(VisualElement element, StringBuilder sb, string indent)
     {
@@ -75,27 +43,53 @@ public static class AxamlGenerator
             attributes.Add($"{prop.Name}=\"{EscapeXml(prop.Value)}\"");
         }
 
-        var attrs = string.Join(" ", attributes);
-        var hasAttrs = !string.IsNullOrWhiteSpace(attrs);
-        var children = GetChildren(element);
-
-        // Content
-        if (element is IContentElement contentElement && contentElement.Content is not null)
+        // 🧩 Добавляем xmlns и x:Class только для корневого UserControl
+        if (string.IsNullOrWhiteSpace(indent) && tag == "UserControl")
         {
-            children.Insert(0, contentElement.Content);
+            attributes.Insert(0, @"x:Class=""GeneratedNamespace.MyUserControl""");
+            attributes.Insert(0, @"xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""");
+            attributes.Insert(0, @"xmlns=""https://github.com/avaloniaui""");
         }
 
-        // Header
-        if (element is IHeaderedElement headered && headered.Header is not null)
+        var children = GetChildren(element);
+
+        // 📥 Content как Content="..." если это простое значение
+        if (element is IContentElement contentElement && contentElement.Content is ControlElement ce)
         {
-            var openTag = hasAttrs ? $"<{tag} {attrs}>" : $"<{tag}>";
+            if (ce.ValueKind == AvaloniaValueKind.Simple &&
+                ce.OriginalInstance is string str &&
+                !string.IsNullOrWhiteSpace(str) &&
+                !children.Any())
+            {
+                attributes.Add($"Content=\"{EscapeXml(str)}\"");
+                ce = null!;
+            }
+            else
+            {
+                children.Insert(0, ce);
+            }
+        }
+
+        // 🧠 Логика генерации <Tag.Header> только если Header — Control
+        ControlElement? headerCe = null;
+        bool shouldWriteHeaderAsElement =
+            element is IHeaderedElement h &&
+            h.Header is ControlElement controlHeader &&
+            controlHeader.ValueKind == AvaloniaValueKind.Control &&
+            !attributes.Any(attr => attr.StartsWith("Header=", StringComparison.OrdinalIgnoreCase)) &&
+            (headerCe = controlHeader) != null;
+
+        var hasAttrs = attributes.Count > 0;
+        var openTag = hasAttrs ? $"<{tag} {string.Join(" ", attributes)}>" : $"<{tag}>";
+
+        if (shouldWriteHeaderAsElement)
+        {
             sb.AppendLine($"{indent}{openTag}");
 
             sb.AppendLine($"{indent}  <{tag}.Header>");
-            GenerateElement(headered.Header, sb, indent + "    ");
+            GenerateElement(headerCe!, sb, indent + "    ");
             sb.AppendLine($"{indent}  </{tag}.Header>");
 
-            // Вложенные attached свойства
             foreach (var prop in element.AttachedProperties)
             {
                 if (prop.SerializedValue is ControlElement nested && prop.IsContainsControl)
@@ -113,21 +107,19 @@ public static class AxamlGenerator
             return;
         }
 
-        // Items
+        // 📋 Items
         if (element is IItemsElement itemsElement && itemsElement.Items.Count > 0)
         {
-            var openTag = hasAttrs ? $"<{tag} {attrs}>" : $"<{tag}>";
-            sb.AppendLine($"{indent}{openTag}");
+            sb.AppendLine($"{indent}<{tag}{(hasAttrs ? " " + string.Join(" ", attributes) : "")}>");
             foreach (var item in itemsElement.Items)
                 GenerateElement(item, sb, indent + "  ");
             sb.AppendLine($"{indent}</{tag}>");
             return;
         }
 
-        // Элемент с дочерними и вложенными attached-свойствами
+        // 👶 Дети или вложенные attached
         if (children.Count > 0 || element.AttachedProperties.Any(p => p.IsContainsControl))
         {
-            var openTag = hasAttrs ? $"<{tag} {attrs}>" : $"<{tag}>";
             sb.AppendLine($"{indent}{openTag}");
 
             foreach (var prop in element.AttachedProperties)
@@ -147,18 +139,16 @@ public static class AxamlGenerator
         }
         else
         {
-            var selfTag = hasAttrs ? $"<{tag} {attrs} />" : $"<{tag} />";
-            sb.AppendLine($"{indent}{selfTag}");
+            var selfClosing = hasAttrs ? $"<{tag} {string.Join(" ", attributes)} />" : $"<{tag} />";
+            sb.AppendLine($"{indent}{selfClosing}");
         }
     }
 
     /// <summary>
-    /// Возвращает список дочерних элементов.
+    /// Возвращает дочерние элементы VisualElement.
     /// </summary>
-    private static List<VisualElement> GetChildren(VisualElement element)
-    {
-        return element.Children.ToList();
-    }
+    private static List<VisualElement> GetChildren(VisualElement element) =>
+        element.Children.ToList();
 
     /// <summary>
     /// Экранирует специальные символы XML.
