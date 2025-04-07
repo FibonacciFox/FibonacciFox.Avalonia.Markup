@@ -1,6 +1,6 @@
 using System.Collections;
+using System.Reflection;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.LogicalTree;
 using FibonacciFox.Avalonia.Markup.Helpers;
 using FibonacciFox.Avalonia.Markup.Models.Visual;
@@ -9,59 +9,54 @@ using FibonacciFox.Avalonia.Markup.Serialization;
 namespace FibonacciFox.Avalonia.Markup;
 
 /// <summary>
-/// Строит сериализуемое визуальное дерево из Avalonia-объектов (Control, ILogical, IEnumerable).
-/// Используется для генерации AXAML и анализа визуальной структуры.
+/// Строит сериализуемое визуальное дерево из Avalonia-контролов.
 /// </summary>
 public static class LogicalTreeBuilder
 {
-    /// <summary>
-    /// Построить сериализуемое дерево из экземпляра <see cref="Control"/>.
-    /// Автоматически определяет тип элемента (ContentControl, Headered и т.п.).
-    /// </summary>
-    /// <param name="control">Экземпляр контрола.</param>
-    /// <returns>Корневой элемент визуального дерева.</returns>
     public static VisualElement BuildVisualTree(Control control)
     {
-        // HeaderedContentControl → HeaderedControlElement
-        if (control is HeaderedContentControl headered)
+        // 🔹 Контрол с Header и Content
+        if (control is ContentControl contentCtrl && HasHeaderProperty(control))
         {
             var element = new HeaderedControlElement
             {
-                ElementType = headered.GetType().Name,
-                OriginalInstance = headered,
-                ValueKind = PropertySerializationHelper.ResolveValueKind(headered)
+                ElementType = control.GetType().Name,
+                OriginalInstance = control,
+                ValueKind = PropertySerializationHelper.ResolveValueKind(control)
             };
 
-            PropertySerializer.SerializeProperties(headered, element);
+            PropertySerializer.SerializeProperties(control, element);
 
-            if (headered.Header is { } header)
-                element.Header = BuildVisualTreeFromObject(header);
+            var headerProp = control.GetType().GetProperty("Header");
+            var headerValue = headerProp?.GetValue(control);
+            if (headerValue is not null)
+                element.Header = BuildVisualTreeFromObject(headerValue);
 
-            if (headered.Content is { } content)
+            if (contentCtrl.Content is { } content)
                 element.Content = BuildVisualTreeFromObject(content);
 
             return element;
         }
 
-        // ContentControl → ContentControlElement
-        if (control is ContentControl contentControl)
+        // 🔹 Контрол с Content
+        if (control is ContentControl cc)
         {
             var element = new ContentControlElement
             {
-                ElementType = contentControl.GetType().Name,
-                OriginalInstance = contentControl,
-                ValueKind = PropertySerializationHelper.ResolveValueKind(contentControl)
+                ElementType = cc.GetType().Name,
+                OriginalInstance = cc,
+                ValueKind = PropertySerializationHelper.ResolveValueKind(cc)
             };
 
-            PropertySerializer.SerializeProperties(contentControl, element);
+            PropertySerializer.SerializeProperties(cc, element);
 
-            if (contentControl.Content is { } content)
+            if (cc.Content is { } content)
                 element.Content = BuildVisualTreeFromObject(content);
 
             return element;
         }
 
-        // ItemsControl → ItemsControlElement (если ItemsSource не задан)
+        // 🔹 Контрол с Items
         if (control is ItemsControl itemsControl && itemsControl.ItemsSource is null)
         {
             var element = new ItemsControlElement
@@ -82,7 +77,7 @@ public static class LogicalTreeBuilder
             return element;
         }
 
-        // Generic Control → ControlElement
+        // 🔹 Обычный Control
         var generic = new ControlElement
         {
             ElementType = control.GetType().Name,
@@ -104,26 +99,13 @@ public static class LogicalTreeBuilder
     }
 
     /// <summary>
-    /// Построить сериализуемое дерево из любого объекта Avalonia:
-    /// Control, ILogical или IEnumerable.
+    /// Построение дерева из произвольного объекта.
     /// </summary>
-    /// <param name="value">Объект значения.</param>
-    /// <returns>Соответствующий <see cref="VisualElement"/>.</returns>
-    public static VisualElement BuildVisualTreeFromObject(object? value)
+    public static VisualElement BuildVisualTreeFromObject(object value)
     {
-        if (value is null)
-        {
-            return new ControlElement
-            {
-                ElementType = "Null",
-                ValueKind = AvaloniaValueKind.Unknown
-            };
-        }
-
         return value switch
         {
             Control control => BuildVisualTree(control),
-
             ILogical logical => BuildVisualTreeFromILogical(logical),
 
             IEnumerable enumerable when value is not string => new ControlElement
@@ -144,11 +126,8 @@ public static class LogicalTreeBuilder
     }
 
     /// <summary>
-    /// Построить визуальное дерево из логического элемента (не Control).
-    /// Используется для построения вложенного дерева из ILogical.
+    /// Строит дерево из ILogical.
     /// </summary>
-    /// <param name="logical">Экземпляр логического элемента.</param>
-    /// <returns>Сериализуемый визуальный элемент.</returns>
     public static VisualElement BuildVisualTreeFromILogical(ILogical logical)
     {
         var element = new ControlElement
@@ -165,4 +144,10 @@ public static class LogicalTreeBuilder
 
         return element;
     }
+
+    /// <summary>
+    /// Проверяет, есть ли у контрола свойство Header.
+    /// </summary>
+    private static bool HasHeaderProperty(object control) =>
+        control.GetType().GetProperty("Header", BindingFlags.Instance | BindingFlags.Public) is not null;
 }

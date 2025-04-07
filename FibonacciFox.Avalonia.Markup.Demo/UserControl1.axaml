@@ -12,7 +12,7 @@
              x:Class="FibonacciFox.Avalonia.Markup.Demo.UserControl1">
     <Expander VerticalAlignment="Top">
         <Expander.Header>
-           Hidden Search
+           <TextBlock>Text</TextBlock>
         </Expander.Header>
         <Grid RowDefinitions="*,*" ColumnDefinitions="150,*">
             <TextBlock Grid.Row="0" Grid.Column="0"
