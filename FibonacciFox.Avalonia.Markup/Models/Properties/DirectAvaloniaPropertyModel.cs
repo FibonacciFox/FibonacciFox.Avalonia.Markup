@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using FibonacciFox.Avalonia.Markup.Helpers;
 
 namespace FibonacciFox.Avalonia.Markup.Models.Properties;
 
@@ -18,18 +19,10 @@ public class DirectAvaloniaPropertyModel : AvaloniaPropertyModel
     /// </summary>
     public static DirectAvaloniaPropertyModel? From(AvaloniaProperty property, Control control)
     {
-        if (ExcludedDirectProperties.Contains(property.Name))
+        if (property.IsReadOnly || ExcludedDirectProperties.Contains(property.Name))
             return null;
 
-        if (property.IsReadOnly)
-            return null;
-
-        var value = control.GetValue(property);
-        if (value == null)
-            return null;
-
-        var model = new DirectAvaloniaPropertyModel { Name = property.Name };
-        model.SetRawValue(value);
-        return model;
+        return PropertyModelFactory.CreateDirectProperty<DirectAvaloniaPropertyModel>(property, control);
     }
+
 }

@@ -14,15 +14,12 @@ public static class TreePrinter
     /// <summary>
     /// Печатает визуальное дерево начиная с указанного корневого элемента.
     /// </summary>
-    /// <param name="element">Корневой <see cref="VisualElement"/>.</param>
-    /// <param name="indent">Отступ слева (используется рекурсивно).</param>
-    /// <param name="isLast">Указывает, последний ли элемент в родительском списке.</param>
     public static void PrintVisualTree(VisualElement element, string indent = "", bool isLast = true)
     {
         string prefix = isLast ? "└" : "├";
         string childIndent = indent + (isLast ? "   " : "│  ");
 
-        // 🎨 Цвет по ValueKind
+        // 🎨 Цвет по типу значения
         ConsoleColor GetKindColor(AvaloniaValueKind kind) => kind switch
         {
             AvaloniaValueKind.Control => ConsoleColor.Cyan,
@@ -56,7 +53,7 @@ public static class TreePrinter
         Console.ResetColor();
         Console.WriteLine();
 
-        // 🧾 Свойства элемента
+        // 🧾 Вывод одного свойства
         void PrintProperty(AvaloniaPropertyModel prop, string category)
         {
             ConsoleColor catColor = category switch
@@ -99,7 +96,7 @@ public static class TreePrinter
             Console.ResetColor();
             Console.WriteLine();
 
-            // 🔽 Вложенные значения
+            // 🔽 Рекурсивный вывод вложенного значения
             if (prop.SerializedValue is { } inner && prop.ValueKind != AvaloniaValueKind.Simple)
                 PrintVisualTree(inner, childIndent, true);
         }
@@ -143,7 +140,7 @@ public static class TreePrinter
             }
         }
 
-        // 👶 Обычные дочерние элементы
+        // 👶 Дочерние элементы
         for (int i = 0; i < element.Children.Count; i++)
         {
             var child = element.Children[i];

@@ -11,5 +11,5 @@
     <ItemGroup>
       <ProjectReference Include="..\FibonacciFox.Avalonia.Markup\FibonacciFox.Avalonia.Markup.csproj" />
     </ItemGroup>
-
+    
 </Project>

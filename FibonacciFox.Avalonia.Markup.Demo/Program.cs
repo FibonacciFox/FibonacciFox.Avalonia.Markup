@@ -2,16 +2,18 @@
 
 namespace FibonacciFox.Avalonia.Markup.Demo;
 
-
 class Program
 {
     static void Main(string[] args)
     {
         // 1. Создаём экземпляр пользовательского контрола
         var control = new DemoControl();
+        var control1 = new DemoControl();
+        var usercontrol1 = new UserControl1();
+        
 
         // 2. Строим сериализуемое визуальное дерево
-        VisualElement root = LogicalTreeBuilder.BuildVisualTree(control);
+        VisualElement root = VisualTreeBuilder.Build(control);
 
         // 3. Печатаем логическое дерево в консоль
         Console.WriteLine("=== Visual Tree ===\n");
@@ -22,6 +24,7 @@ class Program
         string axaml = AxamlGenerator.GenerateAxaml(root);
         Console.WriteLine(axaml);
         Console.WriteLine("\n=== Завершено ===");
-
+        
+        
     }
 }

@@ -22,22 +22,6 @@ public class ClrAvaloniaPropertyModel : AvaloniaPropertyModel
         if (ExcludedProperties.Contains(prop.Name))
             return null;
 
-        if (!PropertySerializationHelper.IsXamlSerializableClrProperty(prop, control))
-            return null;
-
-        try
-        {
-            var value = prop.GetValue(control);
-            if (value == null)
-                return null;
-
-            var model = new ClrAvaloniaPropertyModel { Name = prop.Name };
-            model.SetRawValue(value);
-            return model;
-        }
-        catch
-        {
-            return null;
-        }
+        return PropertyModelFactory.CreateClrProperty(prop, control);
     }
 }

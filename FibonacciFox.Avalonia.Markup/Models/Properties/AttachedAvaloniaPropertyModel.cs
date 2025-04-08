@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using FibonacciFox.Avalonia.Markup.Helpers;
 
 namespace FibonacciFox.Avalonia.Markup.Models.Properties;
 
@@ -16,15 +17,7 @@ public class AttachedAvaloniaPropertyModel : AvaloniaPropertyModel
         if (property.Name == "NameScope" || property.IsReadOnly || !control.IsSet(property))
             return null;
 
-        var value = control.GetValue(property);
-        if (value == null)
-            return null;
-
-        var model = new AttachedAvaloniaPropertyModel
-        {
-            Name = $"{property.OwnerType.Name}.{property.Name}"
-        };
-        model.SetRawValue(value);
-        return model;
+        return PropertyModelFactory.CreateAvaloniaProperty<AttachedAvaloniaPropertyModel>(property, control);
     }
+
 }

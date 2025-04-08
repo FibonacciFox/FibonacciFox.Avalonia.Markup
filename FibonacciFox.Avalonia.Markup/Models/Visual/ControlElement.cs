@@ -10,8 +10,9 @@ public class ControlElement : VisualElement
     /// </summary>
     public string? Name =>
         StyledProperties.FirstOrDefault(p => p.Name == "Name")?.Value
-        ?? DirectProperties.FirstOrDefault(p => p.Name == "Name")?.Value;
-
+        ?? DirectProperties.FirstOrDefault(p => p.Name == "Name")?.Value
+        ?? ClrProperties.FirstOrDefault(p => p.Name == "Name")?.Value;
+    
     /// <summary>
     /// Отображаемое имя элемента для отладки: "Тип (Name: ...)" или просто "Тип".
     /// </summary>

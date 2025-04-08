@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
+using FibonacciFox.Avalonia.Markup.Helpers;
 
 namespace FibonacciFox.Avalonia.Markup.Models.Properties;
 
@@ -17,18 +17,12 @@ public class StyledAvaloniaPropertyModel : AvaloniaPropertyModel
     /// <returns>Модель свойства или <c>null</c>, если не подходит для сериализации.</returns>
     public static StyledAvaloniaPropertyModel? From(AvaloniaProperty property, Control control)
     {
-        // Исключаем Content и Header, если они Control'ы (будут обработаны как вложенные элементы)
         if ((control is ContentControl && property.Name == "Content") ||
             property.IsReadOnly ||
             !control.IsSet(property))
             return null;
 
-        var value = control.GetValue(property);
-        if (value == null)
-            return null;
-
-        var model = new StyledAvaloniaPropertyModel { Name = property.Name };
-        model.SetRawValue(value);
-        return model;
+        return PropertyModelFactory.CreateAvaloniaProperty<StyledAvaloniaPropertyModel>(property, control);
     }
+
 }
