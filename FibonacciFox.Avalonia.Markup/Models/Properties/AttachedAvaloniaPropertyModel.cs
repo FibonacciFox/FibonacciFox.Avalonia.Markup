@@ -14,7 +14,7 @@ public class AttachedAvaloniaPropertyModel : AvaloniaPropertyModel
     /// </summary>
     public static AttachedAvaloniaPropertyModel? From(AvaloniaProperty property, Control control)
     {
-        if (property.Name == "NameScope" || property.IsReadOnly || !control.IsSet(property))
+        if (property.Name == "NameScope" || property.IsReadOnly)
             return null;
 
         return PropertyModelFactory.CreateAvaloniaProperty<AttachedAvaloniaPropertyModel>(property, control);

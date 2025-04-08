@@ -1,4 +1,5 @@
 ﻿using FibonacciFox.Avalonia.Markup.Models.Visual;
+using FibonacciFox.Avalonia.Markup.Serialization;
 
 namespace FibonacciFox.Avalonia.Markup.Demo;
 
@@ -8,12 +9,11 @@ class Program
     {
         // 1. Создаём экземпляр пользовательского контрола
         var control = new DemoControl();
-        var control1 = new DemoControl();
-        var usercontrol1 = new UserControl1();
         
-
+        var usercontrol1 = new UserControl1();
+       
         // 2. Строим сериализуемое визуальное дерево
-        VisualElement root = VisualTreeBuilder.Build(control);
+        VisualElement root = VisualTreeBuilder.Build(usercontrol1);
 
         // 3. Печатаем логическое дерево в консоль
         Console.WriteLine("=== Visual Tree ===\n");

@@ -4,13 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="FibonacciFox.Avalonia.Markup.Demo.UserControl1">
-  <Rectangle Fill="Aqua" Height="200" Width="400"
-             ToolTip.Placement="Bottom">
-    <ToolTip.Tip>
-      <StackPanel>
-        <TextBlock FontSize="16">Rectangle</TextBlock>
-        <TextBlock>Some explanation here.</TextBlock>
-      </StackPanel>
-    </ToolTip.Tip>
-  </Rectangle>
+    <StackPanel>
+        <Border Background="Gainsboro"
+                BorderBrush="Black"
+                BorderThickness="2"
+                CornerRadius="3"
+                BoxShadow="5 5 10 0 DarkGray"
+                Padding="10" Margin="40">
+            <TextBlock>Box with a drop shadow</TextBlock>
+        </Border>
+    </StackPanel>
 </UserControl>

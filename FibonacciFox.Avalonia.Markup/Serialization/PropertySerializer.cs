@@ -1,86 +1,90 @@
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.LogicalTree;
+using FibonacciFox.Avalonia.Markup.Helpers;
 using FibonacciFox.Avalonia.Markup.Models.Properties;
 using FibonacciFox.Avalonia.Markup.Models.Visual;
 
 namespace FibonacciFox.Avalonia.Markup.Serialization;
 
 /// <summary>
-/// Сериализует свойства контрола (styled, attached, direct, CLR) в модель <see cref="VisualElement"/>.
-/// Используется при построении сериализуемой структуры XAML.
+/// Сериализует свойства Avalonia-элемента (styled, attached, direct и CLR) в визуальную модель <see cref="VisualElement"/>.
+/// Используется при построении сериализуемого дерева AXAML.
 /// </summary>
 public static class PropertySerializer
 {
     /// <summary>
     /// Сериализует все поддерживаемые свойства контрола и добавляет их в <see cref="VisualElement"/>.
     /// </summary>
+    /// <param name="control">Контрол, из которого извлекаются свойства.</param>
+    /// <param name="element">Сериализуемая модель визуального элемента, в которую будут добавлены свойства.</param>
     public static void SerializeProperties(Control control, VisualElement element)
     {
         var addedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Styled
+        // 1. Styled-свойства
         var styled = AvaloniaPropertyRegistry.Instance.GetRegistered(control.GetType());
         foreach (var prop in styled)
         {
-            // Исключаем Content и Header, если они сериализуются отдельно как вложенные элементы
+            // Content и Header обрабатываются отдельно
             if (IsKnownContentProperty(control, prop))
                 continue;
-
-            var node = StyledAvaloniaPropertyModel.From(prop, control);
-            if (node != null)
+            
+            var model = StyledAvaloniaPropertyModel.From(prop, control);
+            if (model != null)
             {
-                element.StyledProperties.Add(node);
+                element.StyledProperties.Add(model);
                 addedNames.Add(prop.Name);
             }
         }
 
-        // Attached
+        // 2. Attached-свойства
         var attached = AvaloniaPropertyRegistry.Instance.GetRegisteredAttached(control.GetType());
         foreach (var prop in attached)
         {
-            var node = AttachedAvaloniaPropertyModel.From(prop, control);
-            if (node != null)
-            {
-                element.AttachedProperties.Add(node);
-            }
+            var model = AttachedAvaloniaPropertyModel.From(prop, control);
+            if (model != null)
+                element.AttachedProperties.Add(model);
         }
 
-        // Direct
+        // 3. Direct-свойства
         var direct = AvaloniaPropertyRegistry.Instance.GetRegisteredDirect(control.GetType());
         foreach (var prop in direct)
         {
-            var node = DirectAvaloniaPropertyModel.From(prop, control);
-            if (node != null)
+            var model = DirectAvaloniaPropertyModel.From(prop, control);
+            if (model != null)
             {
-                element.DirectProperties.Add(node);
+                element.DirectProperties.Add(model);
                 addedNames.Add(prop.Name);
             }
         }
 
-        // CLR
+        // 4. CLR-свойства
         var clr = control.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
         foreach (var prop in clr)
         {
+            // Исключаем свойства, которые уже покрыты AvaloniaProperty
             if (addedNames.Contains(prop.Name))
                 continue;
-
-            var node = ClrAvaloniaPropertyModel.From(prop, control);
-            if (node != null)
-                element.ClrProperties.Add(node);
+            
+            var model = ClrAvaloniaPropertyModel.From(prop, control);
+            if (model != null)
+                element.ClrProperties.Add(model);
         }
     }
 
     /// <summary>
-    /// Проверяет, является ли свойство Content или Header, которое должно быть сериализовано отдельно.
+    /// Проверяет, является ли свойство Content или Header, которые должны быть сериализованы как вложенные элементы,
+    /// а не как обычные свойства.
     /// </summary>
+    /// <param name="control">Контрол, содержащий свойство.</param>
+    /// <param name="property">Проверяемое свойство Avalonia.</param>
+    /// <returns>True, если это Content или Header.</returns>
     private static bool IsKnownContentProperty(Control control, AvaloniaProperty property)
     {
-        if (!control.IsSet(property) || property.IsReadOnly || property.Name is not ("Content" or "Header"))
+        if (!control.IsSet(property) || property.IsReadOnly)
             return false;
 
-        var value = control.GetValue(property);
-        return value is Control or ILogical;
+        return property.Name is "Content" or "Header";
     }
 }
