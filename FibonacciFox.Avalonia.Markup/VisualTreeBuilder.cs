@@ -4,6 +4,7 @@ using Avalonia.LogicalTree;
 using FibonacciFox.Avalonia.Markup.Models.Visual;
 using FibonacciFox.Avalonia.Markup.Serialization;
 using FibonacciFox.Avalonia.Markup.Helpers;
+using Avalonia.Metadata;
 
 namespace FibonacciFox.Avalonia.Markup;
 
@@ -75,7 +76,27 @@ public static class VisualTreeBuilder
             return element;
         }
 
-        // Обычный Control
+        // Универсальный вариант — проверяем ContentAttribute
+        var contentProperty = GetContentProperty(control);
+        if (contentProperty is not null)
+        {
+            var element = new ContentControlElement
+            {
+                ElementType = control.GetType().Name,
+                OriginalInstance = control,
+                ValueKind = ValueClassifier.ResolveValueKind(control)
+            };
+
+            PropertySerializer.SerializeProperties(control, element);
+
+            var contentValue = contentProperty.GetValue(control);
+            if (contentValue is not null)
+                element.Content = VisualObjectConverter.Convert(contentValue);
+
+            return element;
+        }
+
+        // Базовый вариант
         var generic = new ControlElement
         {
             ElementType = control.GetType().Name,
@@ -98,4 +119,16 @@ public static class VisualTreeBuilder
 
     private static bool HasHeaderProperty(object control) =>
         control.GetType().GetProperty("Header", BindingFlags.Instance | BindingFlags.Public) is not null;
+
+    /// <summary>
+    /// Возвращает свойство, помеченное как [Content], если оно есть.
+    /// </summary>
+    private static PropertyInfo? GetContentProperty(Control control)
+    {
+        return control.GetType()
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(p =>
+                p.GetCustomAttribute<ContentAttribute>() != null &&
+                typeof(object).IsAssignableFrom(p.PropertyType));
+    }
 }

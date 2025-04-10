@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="FibonacciFox.Avalonia.Markup.Demo.UserControl1">
-    <StackPanel>
+    <StackPanel Classes="h1">
         <Border Background="Gainsboro"
                 BorderBrush="Black"
                 BorderThickness="2"
@@ -15,7 +15,7 @@
         </Border>
         <Expander VerticalAlignment="Top">
             <Expander.Header>
-                Hidden Search
+                <TextBlock>Header Text</TextBlock>
             </Expander.Header>
             <Grid RowDefinitions="*,*" ColumnDefinitions="150,*">
                 <TextBlock Grid.Row="0" Grid.Column="0"

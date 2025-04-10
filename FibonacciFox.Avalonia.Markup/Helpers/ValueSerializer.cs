@@ -40,8 +40,8 @@ public static class ValueSerializer
             // Перечисления — стандартное строковое представление
             Enum e => e.ToString(),
 
-            // Классы (AvaloniaList<string>) — сериализуем через запятую, исключая псевдоклассы
-            AvaloniaList<string> list => SerializeClasses(list),
+            // Классы — сериализуем как строку через запятую
+            AvaloniaList<string> list => string.Join(",", list),
 
             // Кисти (Brush) — ToString() возвращает цвет или описание
             IBrush brush => brush.ToString() ?? "Unknown",
@@ -52,7 +52,7 @@ public static class ValueSerializer
             // Ссылки на ресурсы — сериализуются как "DynamicResource"
             IResourceProvider => "DynamicResource",
 
-            // Шаблоны (DataTemplate, ControlTemplate и т.п.) — метка "Template"
+            // Шаблоны — метка "Template"
             ITemplate => "Template",
 
             // Прочие значимые типы значений — через ToString()
@@ -72,12 +72,4 @@ public static class ValueSerializer
             Binding b => $"Binding Path={b.Path}, Mode={b.Mode}",
             _ => "Binding"
         };
-
-    /// <summary>
-    /// Сериализует список классов, исключая псевдоклассы (начинаются с двоеточия).
-    /// </summary>
-    private static string SerializeClasses(AvaloniaList<string> classes)
-    {
-        return string.Join(",", classes.Where(c => !c.StartsWith(":")));
-    }
 }

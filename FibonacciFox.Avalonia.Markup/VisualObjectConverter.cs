@@ -7,10 +7,16 @@ using FibonacciFox.Avalonia.Markup.Models.Visual;
 namespace FibonacciFox.Avalonia.Markup;
 
 /// <summary>
-/// Конвертирует любой объект Avalonia (Control, ILogical, IEnumerable) в VisualElement.
+/// Конвертирует объект Avalonia (Control, ILogical, IEnumerable) в сериализуемый VisualElement.
+/// Используется при построении дерева для AXAML.
 /// </summary>
 public static class VisualObjectConverter
 {
+    /// <summary>
+    /// Преобразует объект в сериализуемую модель VisualElement.
+    /// </summary>
+    /// <param name="value">Объект Avalonia (контрол, коллекция и т.п.).</param>
+    /// <returns>VisualElement, отражающий структуру объекта.</returns>
     public static VisualElement Convert(object value)
     {
         return value switch
@@ -21,7 +27,7 @@ public static class VisualObjectConverter
 
             IEnumerable enumerable when value is not string => new ControlElement
             {
-                ElementType = value.GetType().Name,
+                ElementType = null, // Не задаём тег — для группировки дочерних элементов
                 OriginalInstance = value,
                 ValueKind = ValueClassifier.ResolveValueKind(value),
                 Children = enumerable.Cast<object>().Select(Convert).ToList()
@@ -36,6 +42,9 @@ public static class VisualObjectConverter
         };
     }
 
+    /// <summary>
+    /// Обрабатывает объекты, реализующие ILogical, преобразуя их логических потомков.
+    /// </summary>
     private static VisualElement ConvertFromILogical(ILogical logical)
     {
         var element = new ControlElement

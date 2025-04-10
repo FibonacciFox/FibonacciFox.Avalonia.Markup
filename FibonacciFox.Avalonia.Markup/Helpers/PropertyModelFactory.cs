@@ -62,6 +62,10 @@ public static class PropertyModelFactory
             if (value == null)
                 return null;
 
+            // Исключаем Classes, если там только псевдоклассы
+            if (value is Classes classes && !classes.Any(c => !c.StartsWith(":")))
+                return null;
+
             return new ClrAvaloniaPropertyModel
             {
                 Name = prop.Name
@@ -72,7 +76,7 @@ public static class PropertyModelFactory
             return null;
         }
     }
-
+    
     /// <summary>
     /// Возвращает полное имя свойства (например, Grid.Row) для attached-свойств.
     /// </summary>

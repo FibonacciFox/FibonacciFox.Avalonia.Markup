@@ -6,7 +6,7 @@ using FibonacciFox.Avalonia.Markup.Models.Visual.Interfaces;
 namespace FibonacciFox.Avalonia.Markup;
 
 /// <summary>
-/// Генерирует AXAML-документ по сериализованному визуальному дереву Avalonia с использованием XML API.
+/// Генерирует AXAML-документ из сериализованного визуального дерева Avalonia с помощью LINQ to XML.
 /// </summary>
 public static class AxamlGenerator
 {
@@ -14,12 +14,22 @@ public static class AxamlGenerator
     {
         var rootElement = GenerateElement(root);
         var document = new XDocument(rootElement);
-        return document.ToString(); // форматированный AXAML
+        return document.ToString();
     }
 
     private static XElement GenerateElement(VisualElement element)
     {
-        string tag = element.ElementType ?? "Unknown";
+        // ⚠ Если ElementType == null, это "обёртка", возвращаем только вложенные элементы
+        if (element.ElementType == null)
+        {
+            var placeholder = new XElement("Placeholder"); // временно
+            foreach (var child in element.Children)
+                placeholder.Add(GenerateElement(child));
+
+            return placeholder;
+        }
+
+        string tag = element.ElementType;
         var xmlElement = new XElement(tag);
 
         if (tag == "UserControl")
@@ -31,25 +41,31 @@ public static class AxamlGenerator
             );
         }
 
-        // Простые свойства
+        // 🧱 Простейшие свойства — в атрибуты
         foreach (var prop in element.GetAllProperties(includeAttached: false))
         {
             if (prop.CanBeSerializedToXaml && !string.IsNullOrWhiteSpace(prop.Value))
                 xmlElement.SetAttributeValue(prop.Name, prop.Value);
         }
 
-        // Header
+        // 🏷 Header
         if (element is IHeaderedElement headered && headered.Header is VisualElement header)
         {
             xmlElement.Add(new XElement($"{tag}.Header", GenerateElement(header)));
         }
 
-        // Content
+        // 📥 Content
         if (element is IContentElement contentHolder && contentHolder.Content is VisualElement content)
         {
-            if (content.ValueKind == AvaloniaValueKind.Simple && content.OriginalInstance is string strContent)
+            if (content.ElementType == null)
             {
-                xmlElement.SetAttributeValue("Content", strContent);
+                // Добавляем дочерние элементы напрямую (без <Controls>)
+                foreach (var child in content.Children)
+                    xmlElement.Add(GenerateElement(child));
+            }
+            else if (content.ValueKind == AvaloniaValueKind.Simple && content.OriginalInstance is string str)
+            {
+                xmlElement.SetAttributeValue("Content", str);
             }
             else
             {
@@ -57,14 +73,14 @@ public static class AxamlGenerator
             }
         }
 
-        // Items
+        // 📋 Items
         if (element is IItemsElement items && items.Items.Count > 0)
         {
             foreach (var item in items.Items)
                 xmlElement.Add(GenerateElement(item));
         }
 
-        // Attached свойства (вложенные и простые)
+        // 📎 Attached свойства
         foreach (var attached in element.AttachedProperties)
         {
             if (attached.IsContainsControl && attached.SerializedValue is VisualElement nested)
@@ -77,9 +93,11 @@ public static class AxamlGenerator
             }
         }
 
-        // Дочерние элементы
+        // 👶 Обычные дочерние элементы
         foreach (var child in element.Children)
+        {
             xmlElement.Add(GenerateElement(child));
+        }
 
         return xmlElement;
     }
