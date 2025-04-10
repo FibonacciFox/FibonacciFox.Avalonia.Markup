@@ -20,6 +20,7 @@ public class DemoControl : UserControl
                     new TextBox { Watermark = "Search text", Width = 200, [Grid.RowProperty] = 0, [Grid.ColumnProperty] = 1 },
                     new TextBlock { Text = "Case sensitive?", [Grid.RowProperty] = 1, [Grid.ColumnProperty] = 0 },
                     new CheckBox { [Grid.RowProperty] = 1, [Grid.ColumnProperty] = 1 },
+                    new UserControl1()
                 }
             }
         };

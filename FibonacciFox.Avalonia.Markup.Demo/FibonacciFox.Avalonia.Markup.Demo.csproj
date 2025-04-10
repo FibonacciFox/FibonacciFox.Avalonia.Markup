@@ -11,5 +11,12 @@
     <ItemGroup>
       <ProjectReference Include="..\FibonacciFox.Avalonia.Markup\FibonacciFox.Avalonia.Markup.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Test\TestControl.axaml.cs">
+        <DependentUpon>TestControl.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+    </ItemGroup>
     
 </Project>

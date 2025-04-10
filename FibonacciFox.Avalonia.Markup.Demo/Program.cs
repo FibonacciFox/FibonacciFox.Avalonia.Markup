@@ -13,7 +13,7 @@ class Program
         var usercontrol1 = new UserControl1();
        
         // 2. Строим сериализуемое визуальное дерево
-        VisualElement root = VisualTreeBuilder.Build(usercontrol1);
+        VisualElement root = VisualTreeBuilder.Build(control);
 
         // 3. Печатаем логическое дерево в консоль
         Console.WriteLine("=== Visual Tree ===\n");

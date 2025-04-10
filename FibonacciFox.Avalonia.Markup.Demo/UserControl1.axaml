@@ -2,9 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:test="clr-namespace:FibonacciFox.Avalonia.Markup.Demo.Test"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="FibonacciFox.Avalonia.Markup.Demo.UserControl1">
-    <StackPanel Classes="h1">
+    <StackPanel Name="StackPanel1" Classes="h1">
         <Border Background="Gainsboro"
                 BorderBrush="Black"
                 BorderThickness="2"
@@ -27,8 +28,11 @@
                 <CheckBox Grid.Row="1" Grid.Column="1" />
             </Grid>
         </Expander>
+        <Expander Header="Test" VerticalAlignment="Top">
+        </Expander>
         <ListBox>
-            <TextBlock>ListBoxWithText</TextBlock>
+            <TextBlock >ListBoxWithText</TextBlock>
         </ListBox>
+        <test:TestControl/>
     </StackPanel>
 </UserControl>

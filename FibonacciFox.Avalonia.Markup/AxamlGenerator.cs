@@ -10,38 +10,45 @@ namespace FibonacciFox.Avalonia.Markup;
 /// </summary>
 public static class AxamlGenerator
 {
+    private static readonly XNamespace AvaloniaNs = "https://github.com/avaloniaui";
+    private static readonly XNamespace XNs = "http://schemas.microsoft.com/winfx/2006/xaml";
+    private static readonly XNamespace DNs = "http://schemas.microsoft.com/expression/blend/2008";
+    private static readonly XNamespace McNs = "http://schemas.openxmlformats.org/markup-compatibility/2006";
+
     public static string GenerateAxaml(VisualElement root)
     {
-        var rootElement = GenerateElement(root);
+        var rootElement = GenerateElement(root, isRoot: true);
         var document = new XDocument(rootElement);
         return document.ToString();
     }
 
-    private static XElement GenerateElement(VisualElement element)
+    private static XElement GenerateElement(VisualElement element, bool isRoot = false)
     {
-        // ⚠ Если ElementType == null, это "обёртка", возвращаем только вложенные элементы
-        if (element.ElementType == null)
-        {
-            var placeholder = new XElement("Placeholder"); // временно
-            foreach (var child in element.Children)
-                placeholder.Add(GenerateElement(child));
+        if (string.IsNullOrWhiteSpace(element.ElementType))
+            throw new ArgumentException("ElementType must not be null or empty for serialization");
 
-            return placeholder;
+        // Применяем Avalonia namespace
+        var elementName = AvaloniaNs + element.ElementType;
+        var xmlElement = new XElement(elementName);
+
+        // 📌 Добавляем пространства имён и x:Class только в корневой элемент
+        if (isRoot)
+        {
+            xmlElement.Add(new XAttribute("xmlns", AvaloniaNs));
+            xmlElement.Add(new XAttribute(XNamespace.Xmlns + "x", XNs));
+            xmlElement.Add(new XAttribute(XNamespace.Xmlns + "d", DNs));
+            xmlElement.Add(new XAttribute(XNamespace.Xmlns + "mc", McNs));
+            xmlElement.Add(new XAttribute(McNs + "Ignorable", "d"));
+            // ✅ Design-time размеры добавлять из визуального дизайнера! Но пока оставлю так
+            xmlElement.Add(new XAttribute(DNs + "DesignWidth", "800"));
+            xmlElement.Add(new XAttribute(DNs + "DesignHeight", "450"));
+            
+            //x:Class добавлять из визуального дизайнера! Но пока оставлю так
+            xmlElement.Add(new XAttribute(XNs + "Class", $"GeneratedNamespace.{element.ElementType}"));
         }
 
-        string tag = element.ElementType;
-        var xmlElement = new XElement(tag);
 
-        if (tag == "UserControl")
-        {
-            xmlElement.Add(
-                new XAttribute("xmlns", "https://github.com/avaloniaui"),
-                new XAttribute(XNamespace.Xmlns + "x", "http://schemas.microsoft.com/winfx/2006/xaml"),
-                new XAttribute(XName.Get("Class", "http://schemas.microsoft.com/winfx/2006/xaml"), "GeneratedNamespace.MyUserControl")
-            );
-        }
-
-        // 🧱 Простейшие свойства — в атрибуты
+        // 🧱 Простейшие свойства
         foreach (var prop in element.GetAllProperties(includeAttached: false))
         {
             if (prop.CanBeSerializedToXaml && !string.IsNullOrWhiteSpace(prop.Value))
@@ -51,7 +58,14 @@ public static class AxamlGenerator
         // 🏷 Header
         if (element is IHeaderedElement headered && headered.Header is VisualElement header)
         {
-            xmlElement.Add(new XElement($"{tag}.Header", GenerateElement(header)));
+            if (header.ValueKind == AvaloniaValueKind.Simple && header.OriginalInstance is string str)
+            {
+                xmlElement.SetAttributeValue("Header", str);
+            }
+            else
+            {
+                xmlElement.Add(new XElement(AvaloniaNs + $"{element.ElementType}.Header", GenerateElement(header)));
+            }
         }
 
         // 📥 Content
@@ -59,7 +73,6 @@ public static class AxamlGenerator
         {
             if (content.ElementType == null)
             {
-                // Добавляем дочерние элементы напрямую (без <Controls>)
                 foreach (var child in content.Children)
                     xmlElement.Add(GenerateElement(child));
             }
@@ -85,7 +98,7 @@ public static class AxamlGenerator
         {
             if (attached.IsContainsControl && attached.SerializedValue is VisualElement nested)
             {
-                xmlElement.Add(new XElement(attached.Name, GenerateElement(nested)));
+                xmlElement.Add(new XElement(AvaloniaNs + attached.Name, GenerateElement(nested)));
             }
             else if (attached.CanBeSerializedToXaml && !string.IsNullOrWhiteSpace(attached.Value))
             {
@@ -93,7 +106,7 @@ public static class AxamlGenerator
             }
         }
 
-        // 👶 Обычные дочерние элементы
+        // 👶 Children
         foreach (var child in element.Children)
         {
             xmlElement.Add(GenerateElement(child));
